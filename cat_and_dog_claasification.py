@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from model.ResNet import *
+from model.Vgg import *
 
 root_dir = 'kagglecatsanddogs_5340/PetImages'
 
@@ -20,8 +20,8 @@ os.makedirs(temp_data_root, exist_ok=True)
 
 cat_dir = os.path.join(root_dir, 'Cat')
 dog_dir = os.path.join(root_dir, "Dog")
-cat_image_num = 4000
-dog_image_num = 4000
+cat_image_num = 5_000
+dog_image_num = 5_000
 # 图片训练的尺寸
 fig_size = (224, 224)
 
@@ -107,7 +107,8 @@ def test(device, retry=False):
         dog_list = sample(dog_dir, 100)
         test_data, test_label = generate_train_data(cat_list, dog_list, mode="test")
 
-    net_parameter = torch.load(os.path.join(model_parameter_root, f"{net_name}.pt"), map_location=device)
+    net_parameter = torch.load(os.path.join(model_parameter_root, f"{net_name}.pt"), map_location=device,
+                               weights_only=True)
     net.load_state_dict(net_parameter)
     net.eval()
     net.to(device)
@@ -148,7 +149,7 @@ if __name__ == '__main__':
     print(f'CUDA available: {torch.cuda.is_available()}')
 
     # 将网络转移到gpu中去
-    net = ResNet()
+    net = VGG()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net.to(device)
 
@@ -163,11 +164,11 @@ if __name__ == '__main__':
             generate_train_data(cat_image_file_path_list, dog_image_file_path_list, mode="train")
 
         # 加载训练数据
-        train_data = torch.load(train_data_path, map_location=device)
-        train_data_label = torch.load(train_data_label_path)
+        train_data = torch.load(train_data_path, map_location=device, weights_only=True)
+        train_data_label = torch.load(train_data_label_path, map_location=device, weights_only=True)
 
         # 开始训练
-        optimizer = torch.optim.Adam(net.parameters(), lr=0.03)
+        optimizer = torch.optim.Adam(net.parameters(), lr=0.04)
         criterion = torch.nn.CrossEntropyLoss()
         batch_size = 128
         assert len(train_data) == len(
