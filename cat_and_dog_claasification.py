@@ -147,30 +147,26 @@ def predict(image_path, device):
 if __name__ == '__main__':
     print(f'CUDA available: {torch.cuda.is_available()}')
 
-    # cat_image_file_path_list = sample(cat_dir, cat_image_num)
-    # dog_image_file_path_list = sample(dog_dir, dog_image_num)
-
-    "展示图像"
-    # for i in range(100):
-    #     show_image(dog_image_file_path_list[i])
-    "生成图像数据"
-    # generate_train_data(cat_image_file_path_list, dog_image_file_path_list, mode="train")
-
     # 将网络转移到gpu中去
     net = ResNet()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net.to(device)
-    train_data = torch.load(os.path.join(temp_data_root, "train_data.pth"), map_location=device)
-    train_data_label = torch.load(os.path.join(temp_data_root, "train_label.pth"))
-
-    "测试一下网络是否可行"
-    # train_data = train_data[0:64, :, :, :].to(torch.float).to(device)
-    # for layer in net.net:
-    #     train_data = forward(layer, train_data)
-    #     print(layer.__class__.__name__, train_data.shape)
 
     training = False
     if training:
+        # 生成训练数据
+        train_data_path = os.path.join(temp_data_root, "train_data.pth")
+        train_data_label_path = os.path.join(temp_data_root, "train_label.pth")
+        if not os.path.exists(train_data_path) or not os.path.exists(train_data_label_path):
+            cat_image_file_path_list = sample(cat_dir, cat_image_num)
+            dog_image_file_path_list = sample(dog_dir, dog_image_num)
+            generate_train_data(cat_image_file_path_list, dog_image_file_path_list, mode="train")
+
+        # 加载训练数据
+        train_data = torch.load(train_data_path, map_location=device)
+        train_data_label = torch.load(train_data_label_path)
+
+        # 开始训练
         optimizer = torch.optim.Adam(net.parameters(), lr=0.03)
         criterion = torch.nn.CrossEntropyLoss()
         batch_size = 128
@@ -192,7 +188,7 @@ if __name__ == '__main__':
         plt.savefig(os.path.join(loss_fig_root, f"{net_name}--loss.jpg"))
         plt.show()
 
-    # test(device, retry=False)
+    test(device, retry=False)
 
     # image_path = 'kagglecatsanddogs_5340/PetImages/Cat/2010.jpg'
     # predict(image_path, device)
