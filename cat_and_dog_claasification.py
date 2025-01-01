@@ -14,6 +14,9 @@ root_dir = 'kagglecatsanddogs_5340/PetImages'
 loss_fig_root = "loss_fig"
 model_parameter_root = "model_parameter"
 temp_data_root = "temp_data"
+os.makedirs(loss_fig_root, exist_ok=True)
+os.makedirs(model_parameter_root, exist_ok=True)
+os.makedirs(temp_data_root, exist_ok=True)
 
 cat_dir = os.path.join(root_dir, 'Cat')
 dog_dir = os.path.join(root_dir, "Dog")
@@ -100,8 +103,8 @@ def test(device, retry=False):
         test_data = torch.load(test_data_path)
         test_label = torch.load(test_label_path)
     else:
-        cat_list = sample(cat_dir, cat_image_num)
-        dog_list = sample(dog_dir, dog_image_num)
+        cat_list = sample(cat_dir, 100)
+        dog_list = sample(dog_dir, 100)
         test_data, test_label = generate_train_data(cat_list, dog_list, mode="test")
 
     net_parameter = torch.load(os.path.join(model_parameter_root, f"{net_name}.pt"), map_location=device)
@@ -142,6 +145,8 @@ def predict(image_path, device):
 
 
 if __name__ == '__main__':
+    print(f'CUDA available: {torch.cuda.is_available()}')
+
     # cat_image_file_path_list = sample(cat_dir, cat_image_num)
     # dog_image_file_path_list = sample(dog_dir, dog_image_num)
 
@@ -187,7 +192,7 @@ if __name__ == '__main__':
         plt.savefig(os.path.join(loss_fig_root, f"{net_name}--loss.jpg"))
         plt.show()
 
-    test(device, retry=False)
+    # test(device, retry=False)
 
     # image_path = 'kagglecatsanddogs_5340/PetImages/Cat/2010.jpg'
     # predict(image_path, device)
